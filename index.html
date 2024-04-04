@@ -41,6 +41,7 @@
             let rightPressed = false;
             let leftPressed = false;
             let score = 0;
+            let lives = 3;
 
             const brickRowCount = 3;
             const brickColumnCount = 5;
@@ -63,7 +64,7 @@
 
             document.addEventListener("keydown", keyDownHandler, false);
             document.addEventListener("keyup", keyUpHandler, false);
-
+            document.addEventListener("mousemove", mouseMoveHandler, false);
 
             // Function to handle when the right or left key is pressed
             function keyDownHandler(e) {
@@ -90,6 +91,14 @@
 
                     leftPressed = false;
 
+                }
+            }
+
+
+            function mouseMoveHandler(e) {
+                const relativeX = e.clientX - canvas.offsetLeft;
+                if (relativeX > 0 && relativeX < canvas.width) {
+                    paddleX = relativeX - paddleWidth / 2;
                 }
             }
 
@@ -158,6 +167,12 @@
                 ctx.fillText(`Score: ${score}`, 8, 20);
             }
 
+            function drawLives() {
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "#0095DD";
+                ctx.fillText(`Lives: ${lives}`, canvas.width - 65, 20);
+            }
+
 
             // Function to display everthing on the canvas
             function draw() {
@@ -166,6 +181,7 @@
                     drawBall();
                     drawPaddle();
                     drawScore();
+                    drawLives();
                     collisionDetection();
 
                     // IF loop to check if the ball is touching the left or right walls
@@ -186,10 +202,18 @@
 
                                 dy = -dy;
 
-                        } else { // End game if ball touches bottom wall
-                                alert("GAME OVER");
-                                document.location.reload();
-                                clearInterval(interval);
+                        } else { // Minus live if ball touches bottom wall
+                                lives--;
+                                if (!lives) { // alert("GAME OVER") if 0 lives;
+                                        alert("GAME OVER");
+                                        document.location.reload();
+                                } else {
+                                        x = canvas.width / 2;
+                                        y = canvas.height - 30;
+                                        dx = 2;
+                                        dy = -2;
+                                        paddleX = (canvas.width - paddleWidth) / 2;
+                                }
                         }
                     }
 
@@ -217,17 +241,13 @@
                     // Changing the x and y coordinate of the ball
                     x += dx;
                     y += dy;
+                    requestAnimationFrame(draw);
             }
 
-            
-            // Start game function
-            function startGame(){
-                const interval = setInterval(draw, 10);
-            }
 
-            // Adding start game function to button
+            // Adding start game function (Draw function) to button
             document.getElementById("runButton").addEventListener("click", function() {
-                startGame();
+                draw();
                 this.disabled = true; 
                 console.log(bricks)
                 
