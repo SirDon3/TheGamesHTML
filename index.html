@@ -1,259 +1,100 @@
 <!doctype html>
 <html lang="en-US">
   <head>
-    <meta charset="utf-8" />
+
+        <meta charset="utf-8" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="main.css">
+
     <title>SirDon3 Gamedev</title>
-    <style>
-      * {
-        padding: 0;
-        margin: 0;
-      }
-      canvas {
-        background: #eee;
-        display: block;
-        margin: 0 auto;
-      }
-      button {
-        display: block;
-      }
-    </style>
+
   </head>
   <body>
 
-    <br>
-    <canvas id="myCanvas" width="480" height="320"></canvas>
-    <br>
-    <center><button id="runButton">Start Game</button></center>
+    <div id="heading" class="bungee-spice-regular"><h1 >2D Breakout Game </h1></div>
 
-    <script>
+    <div id="container" class="container text-center">
+        <div class="row align-items-center">
+          <div id="left-info" class="col align-self-center">
 
-            const canvas = document.getElementById("myCanvas");
-            const ctx = canvas.getContext("2d");
-
-            const ballRadius = 10;
-            let x = canvas.width /2;
-            let y = canvas.height -30;
-            let dx = 4;
-            let dy = -1;
-            const paddleHeight = 10;
-            const paddleWidth = 75;
-            let paddleX = (canvas.width - paddleWidth) / 2;
-            let rightPressed = false;
-            let leftPressed = false;
-            let score = 0;
-            let lives = 3;
-
-            const brickRowCount = 3;
-            const brickColumnCount = 5;
-            const brickWidth = 75;
-            const brickHeight = 20;
-            const brickPadding = 10;
-            const brickOffsetTop = 30;
-            const brickOffsetLeft = 30;
-
-
-            // Creating 2D bricks array 
-            let bricks = [];
-
-            for (let c = 0; c < brickColumnCount; c++) {
-                bricks[c] = [];
-                for (let r = 0; r < brickRowCount; r++) {
-                    bricks[c][r] = { x: 0, y: 0, status: 1 };
-                }
-            }
-
-            document.addEventListener("keydown", keyDownHandler, false);
-            document.addEventListener("keyup", keyUpHandler, false);
-            document.addEventListener("mousemove", mouseMoveHandler, false);
-
-            // Function to handle when the right or left key is pressed
-            function keyDownHandler(e) {
-
-                if (e.key == "Right" || e.key == "ArrowRight") {
-
-                    rightPressed = true;
-
-                } else if (e.key == "Left" || e.key == "ArrowLeft") {
-
-                    leftPressed = true;
-
-                }
-            }
-
-            // Function to handle when the right or left key is unpressed
-            function keyUpHandler(e) {
-
-                if (e.key == "Right" || e.key == "ArrowRight") {
-
-                    rightPressed = false;
-
-                } else if (e.key == "Left" || e.key == "ArrowLeft") {
-
-                    leftPressed = false;
-
-                }
-            }
-
-
-            function mouseMoveHandler(e) {
-                const relativeX = e.clientX - canvas.offsetLeft;
-                if (relativeX > 0 && relativeX < canvas.width) {
-                    paddleX = relativeX - paddleWidth / 2;
-                }
-            }
-
-            // Function to draw ball
-            function drawBall() {
-                    ctx.beginPath();
-                    ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-                    ctx.fillStyle = "#0095DD";
-                    ctx.fill();
-                    ctx.closePath();
-            }
-
-            // Function to draw paddle
-            function drawPaddle() {
-                    ctx.beginPath();
-                    ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
-                    ctx.fillStyle = "#0095DD";
-                    ctx.fill();
-                    ctx.closePath();
-            }
-
-            // Function to draw bricks
-            function drawBricks() {
-                for (let c = 0; c < brickColumnCount; c++) {
-                        for (let r = 0; r < brickRowCount; r++) {
-                            if (bricks[c][r].status === 1) {
-                                const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
-                                const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
-                                bricks[c][r].x = brickX;
-                                bricks[c][r].y = brickY;
-                                ctx.beginPath();
-                                ctx.rect(brickX, brickY, brickWidth, brickHeight);
-                                ctx.fillStyle = "#0095DD";
-                                ctx.fill();
-                                ctx.closePath();
-                            }
-                        }
-                    }
-            }
-
-            // Function to detect collision with bricks and make them disappear 
-            function collisionDetection() {
-                for (let c = 0; c < brickColumnCount; c++) {
-                    for (let r = 0; r < brickRowCount; r++) {
-                        const b = bricks[c][r];
-                        if (b.status === 1) {
-                            if (x > b.x && x < b.x + brickWidth &&
-                                y > b.y && y < b.y + brickHeight) {
-                                dy = -dy;
-                                b.status = 0;
-                                score++;
-                                if (score === brickRowCount * brickColumnCount) {
-                                    alert("YOU WIN, CONGRATULATIONS!");
-                                    document.location.reload();
-                                    clearInterval(interval);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            function drawScore() {
-                ctx.font = "16px Arial";
-                ctx.fillStyle = "#0095DD";
-                ctx.fillText(`Score: ${score}`, 8, 20);
-            }
-
-            function drawLives() {
-                ctx.font = "16px Arial";
-                ctx.fillStyle = "#0095DD";
-                ctx.fillText(`Lives: ${lives}`, canvas.width - 65, 20);
-            }
-
-
-            // Function to display everthing on the canvas
-            function draw() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    drawBricks();
-                    drawBall();
-                    drawPaddle();
-                    drawScore();
-                    drawLives();
-                    collisionDetection();
-
-                    // IF loop to check if the ball is touching the left or right walls
-                    if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-
-                            dx = -dx;
-
-                    }
-
-                    // IF loop to check if the ball is touching top wall
-                    if (y + dy < ballRadius) {
-
-                            dy = -dy;
-
-                    } else if (y + dy > canvas.height - ballRadius) { // Checking if the ball is touching bottom wall
-
-                        if (x > paddleX && x < paddleX + paddleWidth) { //Checking if paddle has contact with the ball
-
-                                dy = -dy;
-
-                        } else { // Minus live if ball touches bottom wall
-                                lives--;
-                                if (!lives) { // alert("GAME OVER") if 0 lives;
-                                        alert("GAME OVER");
-                                        document.location.reload();
-                                } else {
-                                        x = canvas.width / 2;
-                                        y = canvas.height - 30;
-                                        dx = 2;
-                                        dy = -2;
-                                        paddleX = (canvas.width - paddleWidth) / 2;
-                                }
-                        }
-                    }
-
-                    if (rightPressed) { // Check if RIght key is pressed, if so move to the right
-
-                            paddleX += 7;
-
-                            if (paddleX + paddleWidth > canvas.width) { // Checking if the paddle has reached the right edge
-
-                                    paddleX = canvas.width - paddleWidth;
-
-                            }
-
-                    } else if (leftPressed) { // Check if Left key is pressed, if so move to the right
-
-                            paddleX -= 7;
-
-                            if (paddleX < 0) { // Checking if the paddle has reached the left edge
-
-                            paddleX = 0;
-
-                            }
-                    }
-
-                    // Changing the x and y coordinate of the ball
-                    x += dx;
-                    y += dy;
-                    requestAnimationFrame(draw);
-            }
-
-
-            // Adding start game function (Draw function) to button
-            document.getElementById("runButton").addEventListener("click", function() {
-                draw();
-                this.disabled = true; 
-                console.log(bricks)
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                    Learn How to play
+                </button>
                 
-            } )
+                <!-- Modal -->
+                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">How To Play</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                                <li>Press Start Game Button</li>
+                                <li>Use Arrow Keys To Move Left & Right <br> or <br> Use Mouse To Move Left & Right</li>
+                                <li>Enjoy The Game!!</li>
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
 
+          </div>
+          <div id="center-canvas" class="col align-self-center">
+            <canvas id="myCanvas" width="480" height="320"></canvas>
+          </div>
+          <div id="right-info" class="col align-self-center">
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop2">
+                    Rules Of The Game
+                </button>
+                
+                <!-- Modal -->
+                <div class="modal fade" id="staticBackdrop2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Rules</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <li>You Have 3 Lives</li>
+                            <li>If The Ball Touches The Bottom You lose 1 Life</li>
+                            <li>Destory All Tiles to Win!!</li>
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+          </div>
+        </div>
+      </div>
 
-    </script>
+    <div id="button">
+        <button id="runButton" class="btn btn-outline-light">Start Game</button>
+    </div>
+    
+    <div id="footer" class="card text-center">
+
+        <div class="card-body">
+          <h5 id="card-title" class="card-title">About This Project</h5>
+          <p id="footer-p" class="card-text">I created this project, with the help of a MDN tutorial, learned a lot about building a game from ground up using pure JavaScript and I also created a very basic UI using Bootstrap and basic CSS. This was a fun project, I learned a lot and had a blast at the same time..</p>
+          <a href="https://www.linkedin.com/in/mohamed-shadhan-60204a203/" class="btn btn-primary">Reach out to Me</a>
+        </div>
+      </div>
+
+   
+
+    <script src="main.js"> </script>
   </body>
 </html>
